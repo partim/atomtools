@@ -1,5 +1,16 @@
 """Basic XML handling."""
 
+from xml.etree.ElementTree import Element, register_namespace, SubElement
+
+def define_namespace(prefix, url):
+    register_namespace(prefix, url)
+    return url
+
+# Namespaces
+#
+xml_ns = define_namespace("xml", "http://www.w3.org/XML/1998/namespace")
+
+
 class XMLObject(object):
     """Base class for XML handling classes.
 
@@ -33,13 +44,37 @@ class XMLObject(object):
         """
         return cls(**kwargs)
 
+    @classmethod
+    def create_inner(cls, name, *args, **kwargs):
+        """Create an instance of an inner object identified by *name*.
+
+        This method provides a way to change the class for inner objects
+        in derived classes. This is useful to provide a class the provides
+        certain extensions.
+
+        In order to use the facility, add a class attribute
+        *inner_factory* to your class. This should be a dictionary
+        mapping names to factory functions (which a class is).
+
+        The method will resolve the factory function in the same way Python
+        resolves methods and will then call it with ``*args`` and
+        ``**kwargs``, returning the result. If no function for *name* can
+        be found, it will raise :exc:`KeyError`.
+        """
+        for type in cls.__mro__:
+            try:
+                factory = type.__dir__["inner_factory"][name]
+            except KeyError: 
+                continue
+            return factory(*args, **kwargs)
+        raise KeyError, name
+
     def create_xml(self, parent, tag):
         """Create an XML element for this object.
 
         Creates an new XML element tree element instance as the last
         child of *parent* and *tag*. It then calls :meth:`prepare_xml`
-        to set up the element. The argument *parent* may be ``None`` in
-        which case the new element will not have a parent.
+        to set up the element. The argument *parent* mus not be ``None``.
 
         Returns the newly created elment.
 
@@ -48,10 +83,18 @@ class XMLObject(object):
         create an element with the same tag, you can overide the method
         dropping the tag argument.
         """
-        element = Element(tag)
+        element = SubElement(parent, tag)
         self.prepare_xml(element)
-        if parent is not None:
-            parent.append(element)
+        return element
+
+    def create_root_xml(self, tag, element_class=Element):
+        """Create a root XML element for this object.
+
+        Same as :meth:`create_xml` except that it creates an element
+        without a parent as an instance of *element_class*.
+        """
+        element = element_class(tag)
+        self.prepare_xml(element)
         return element
 
     def prepare_xml(self, element):
@@ -61,5 +104,10 @@ class XMLObject(object):
 
         When you implement your version of this method, don't forget to
         call the parent implementation(s) via the super construct.
+
+        Note that this is the place to check if the instance has enough
+        status to create valid XML. If it doesn't, you should raise a
+        :exc:`.atomtools.exceptions.IncompleteObjectError`.
         """
         pass
+
