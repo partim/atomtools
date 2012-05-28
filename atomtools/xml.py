@@ -114,12 +114,13 @@ class XMLObject(object):
         self.prepare_xml(element)
         return element
 
-    def create_root_xml(self, tag, element_class=Element):
+    def create_root_xml(self, tag, element_class=None):
         """Create a root XML element for this object.
 
         Same as :meth:`create_xml` except that it creates an element
         without a parent as an instance of *element_class*.
         """
+        element_class = element_class or Element
         element = element_class(tag)
         self.prepare_xml(element)
         return element

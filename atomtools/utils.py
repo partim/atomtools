@@ -1,5 +1,8 @@
 """Various utility functions."""
 
+from __future__ import absolute_import
+from xml.etree.ElementTree import tostring as to_xml_string
+
 def create_text_xml(text, parent, tag):
     element = SubElement(parent, tag)
     element.text = unicode(text)

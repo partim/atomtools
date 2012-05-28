@@ -4,7 +4,7 @@ The document you are looking for is RFC 4287.
 """
 from __future__ import absolute_import
 import base64
-from xml.etree.ElementTree import Element, QName
+from xml.etree.ElementTree import QName
 from xml.etree.ElementTree import tostring as to_xml_string
 
 from atomtools.exceptions import IncompleteObjectError
@@ -518,7 +518,7 @@ class AtomEntry(AtomMeta):
         return super(AtomEntry, self).create_xml(parent, tag)
 
     def create_root_xml(self, tag=QName(atom_ns, "entry"),
-                        element_class=Element):
+                        element_class=None):
         return super(AtomEntry, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
@@ -567,7 +567,7 @@ class AtomFeed(AtomSource):
         super(AtomFeed, self).create_xml(parent, tag)
 
     def create_root_xml(self, tag=QName(atom_ns, "feed"),
-                        element_class=Element):
+                        element_class=None):
         super(AtomFeed, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
