@@ -1,5 +1,6 @@
 """Basic XML handling."""
 
+from __future__ import absolute_import
 from xml.etree.ElementTree import Element, register_namespace, SubElement
 
 def define_namespace(prefix, url):
@@ -39,13 +40,37 @@ class XMLObject(object):
         constructor handles. By bubbeling up the inheritance tree, we thus
         create all the arguments for creating a complete instance.
 
+        Your implementation should be generous. If stuff is missing or has
+        the wrong type, go ahead anyhow. In this case, create an instance
+        that will not result in valid XML later. The method :meth:`validate`
+        can be used to check if the the incoming XML was broken. If you
+        want, you can note the errors so that :meth:`validate` can give
+        specific information.
+
         The implementation here in the base class simply creates the
         instance with all the collected arguments.
         """
         return cls(**kwargs)
 
+    def validate(self, secure=True):
+        """Validate whether the object would result in proper XML.
+
+        If all is well, the method simply return ``None``. Otherwise it
+        should raise a :meth:`ValidationError` exception. This exception
+        contains a list of all the errors found as a pair of the XPath
+        to the broken elements and a description. 
+
+        The method should always check if the XML would be valid. If the
+        attribute *secure* is ``True`` (the default), it should also
+        check whether the result should be considered safe, whatever that
+        means.
+
+        You can use 
+        """
+        return None
+
     @classmethod
-    def create_inner(cls, name, *args, **kwargs):
+    def inner_from_xml(cls, name, sub):
         """Create an instance of an inner object identified by *name*.
 
         This method provides a way to change the class for inner objects
@@ -54,7 +79,9 @@ class XMLObject(object):
 
         In order to use the facility, add a class attribute
         *inner_factory* to your class. This should be a dictionary
-        mapping names to factory functions (which a class is).
+        mapping names to factory functions that create an instance from an
+        element tree element. Mostly, this will be the :meth:`from_xml`
+        methods.
 
         The method will resolve the factory function in the same way Python
         resolves methods and will then call it with ``*args`` and
@@ -66,7 +93,7 @@ class XMLObject(object):
                 factory = type.__dir__["inner_factory"][name]
             except KeyError: 
                 continue
-            return factory(*args, **kwargs)
+            return factory(sub)
         raise KeyError, name
 
     def create_xml(self, parent, tag):
@@ -110,4 +137,5 @@ class XMLObject(object):
         :exc:`.atomtools.exceptions.IncompleteObjectError`.
         """
         pass
+
 

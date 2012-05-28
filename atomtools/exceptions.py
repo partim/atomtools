@@ -7,3 +7,11 @@ class IncompleteObjectError(ValueError):
     representation but have still some attributes left at ``None`` that
     are required in the XML.
     """
+
+
+class ValidationError(RuntimeError):
+    """The object does not validate.
+
+    """
+
+
