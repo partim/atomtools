@@ -5,7 +5,6 @@ The document you are looking for is RFC 4287.
 from __future__ import absolute_import
 import base64
 from xml.etree.ElementTree import QName
-from xml.etree.ElementTree import tostring as to_xml_string
 
 from atomtools.exceptions import IncompleteObjectError
 from atomtools.utils import (create_text_xml, flatten_xml_content,
