@@ -20,6 +20,7 @@ class AppCategories(AtomCommon):
     inner_factory = {
         "category": AtomCategory.from_xml,
     }
+    content_type = "application/atomcat+xml"
 
     def __init__(self, fixed=False, scheme=None, href=None, categories=(),
                  **kwargs):
@@ -139,9 +140,10 @@ class AppWorkspace(AtomCommon):
         "collection": AppCollection.from_xml
     }
 
-    def __init__(self, title=None, **kwargs):
+    def __init__(self, title=None, collections=(), **kwargs):
         super(AppWorkspace, self).__init__(**kwargs)
         self.title = title
+        self.collections = list(collections)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
@@ -157,6 +159,7 @@ class AppWorkspace(AtomCommon):
         if not self.title:
             raise IncompleteObjectError, "title is required"
         super(AppWorkspace, self).prepare_xml(element)
+        self.title.create_xml(element, QName(atom_ns, "title"))
         for item in self.collections:
             item.create_xml(element, QName(app_ns, "collection"))
 
@@ -168,10 +171,11 @@ class AppService(AtomCommon):
     inner_factory = {
         "workspace": AppWorkspace.from_xml,
     }
+    content_type = "application/atomsvc+xml"
 
-    def __init__(self, workspaces, **kwargs):
+    def __init__(self, workspaces=(), **kwargs):
         super(AppService, self).__init__(**kwargs)
-        self.workspaces = workspaces
+        self.workspaces = list(workspaces)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
@@ -184,7 +188,8 @@ class AppService(AtomCommon):
     def create_xml(self, parent, tag=QName(app_ns, "service")):
         return super(AppService, self).create_xml(parent, tag)
 
-    def create_root_xml(tag=QName(app_ns, "service"), element_class=None):
+    def create_root_xml(self, tag=QName(app_ns, "service"),
+                        element_class=None):
         return super(AppService, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
@@ -245,7 +250,7 @@ class AppFeed(AtomFeed):
                                             **kwargs)
 
     def prepare_xml(self, element):
-        super(AppFeed, element).prepare_xml(self, element)
+        super(AppFeed, self).prepare_xml(element)
         if self.collection:
-            self.collection.prepare_xml(element, QName(app_ns, "collection"))
+            self.collection.create_xml(element, QName(app_ns, "collection"))
 

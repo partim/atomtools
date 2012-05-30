@@ -1,6 +1,7 @@
 """Various utility functions."""
 
 from __future__ import absolute_import
+from xml.etree.ElementTree import SubElement
 from xml.etree.ElementTree import tostring as to_xml_string
 
 def create_text_xml(text, parent, tag):
@@ -17,6 +18,7 @@ def flatten_xml_content(element):
         text = ''.join(text)
     else:
         text = element.text
+    return text.strip()
 
 def from_text_xml(element):
     """Return only the initial text.
@@ -35,3 +37,12 @@ def wrap_xml_tree(element, tag):
         res.extend(e for e in element)
         return res
 
+def print_xml_tree(element, prefix=""):
+    from sys import stderr
+    stderr.write(prefix)
+    stderr.write(repr(element.tag))
+    for v in element.attrib.iteritems():
+        stderr.write(" %r=%r" % v)
+    stderr.write("\n")
+    for sub in element:
+        print_xml_tree(sub, "%s  " % prefix)

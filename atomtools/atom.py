@@ -63,7 +63,7 @@ class AtomText(AtomCommon):
     should check that it doesn't contain any malicious crap, such as
     xhtml:script elements.
     """
-    def __init__(self, type=None, text=None, **kwargs):
+    def __init__(self, type="text", text=None, **kwargs):
         super(AtomText, self).__init__(**kwargs)
         self.type = type
         self.text = text
@@ -79,12 +79,12 @@ class AtomText(AtomCommon):
                                              **kwargs)
 
     def prepare_xml(self, element):
-        if text is None:
+        if self.text is None:
             raise IncompleteObjectError, "text must not be None"
         super(AtomText, self).prepare_xml(element)
         if self.type is not None:
             element.attrib["type"] = self.type
-        if self.type.lower() == "xhtml":
+        if self.type is not None and self.type.lower() == "xhtml":
             if hasattr(self.text, "create_xml"):
                 self.create_xml(element)
             else:
@@ -110,17 +110,14 @@ class AtomPerson(AtomCommon):
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        name = element.find(QName(atom_ns, "name"))
-        if name:
-            name = name.text
-        uri = element.find(QName(atom_ns, "uri"))
-        if uri:
-            uri = uri.text
-        email = element.find(QName(atom_ns, "email"))
-        if email:
-            email = email.text
-        return super(AtomPerson, cls).from_xml(element, name=name, uri=uri,
-                                               email=email, **kwargs)
+        for sub in element:
+            if sub.tag == QName(atom_ns, "name"):
+                kwargs["name"] = sub.text
+            elif sub.tag == QName(atom_ns, "uri"):
+                kwargs["uri"] = sub.text
+            elif sub.tag == QName(atom_ns, "email"):
+                kwargs["email"] = sub.text
+        return super(AtomPerson, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
         super(AtomPerson, self).prepare_xml(element)
@@ -190,7 +187,7 @@ class AtomContent(AtomCommon):
         if src:
             content = None
         elif type in ("text", "html"):
-            content = flatten_xml_content(elment)
+            content = flatten_xml_content(element)
         elif type == "xhtml":
             content = wrap_xml_tree(element, QName(xhtml_ns, "div"))
         elif (type in ('text/xml', 'application/xml',
@@ -217,7 +214,7 @@ class AtomContent(AtomCommon):
     def prepare_xml(self, element):
         super(AtomContent, self).prepare_xml(element)
         if self.type:
-            element.attrib["type"] = type
+            element.attrib["type"] = self.type
         if self.src:
             element.attrib["src"] = src
         elif self.type is None or self.type in ("text", "html"):
@@ -239,6 +236,16 @@ class AtomContent(AtomCommon):
         else:
             element.text = base64.b64encode(self.content)
 
+    def is_binary(self):
+        """Is the content binary and needs base-64 encoding?"""
+        return (not self.src and self.type
+                and self.type not in ("text", "html", 
+                                      "xhtml", 'text/xml', 'application/xml',
+                                      'text/xml-external-parsed-entity',
+                                      'application/xml-external-parsed-entity',
+                                      'application/xml-dtd')
+                and not self.type.endswith('+xml')
+                and not self.type.endswith('/xml'))
 
 class AtomCategory(AtomCommon):
     """4.2.2.  The "atom:category" Element
@@ -344,7 +351,7 @@ class AtomLink(AtomCommon):
         return super(AtomLink, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
-        if href is None:
+        if self.href is None:
             raise IncompleteObjectError, "href is required"
         super(AtomLink, self).prepare_xml(element)
         element.attrib["href"] = self.href
@@ -412,7 +419,7 @@ class AtomMeta(AtomCommon):
         return super(AtomMeta, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
-        super(AtomMeta, super).prepare_xml(element)
+        super(AtomMeta, self).prepare_xml(element)
         for author in self.authors:
             author.create_xml(element, QName(atom_ns, "author"))
         for category in self.categories:
@@ -429,6 +436,25 @@ class AtomMeta(AtomCommon):
             self.title.create_xml(element, QName(atom_ns, "title"))
         if self.updated:
             self.updated.create_xml(element, QName(atom_ns, "updated"))
+
+    def get_links(self, rel):
+        """Returns a list of the hrefs of all links with *rel*."""
+        return [link.href for link in self.links if link.rel == rel]
+
+    def get_first_link(self, rel):
+        """Get the href of the first link with *rel*."""
+        for link in self.links:
+            if link.rel == rel:
+                return link.href
+
+    def replace_link(self, rel, href, **kwargs):
+        """Replace all links with *rel* with a single new one."""
+        self.remove_links(rel)
+        self.links.append(AtomLink(href=href, rel=rel, **kwargs))
+
+    def remove_links(self, rel):
+        """Remove all linjks with *rel*."""
+        self.links = [link for link in self.links if link.rel != rel]
 
 
 class AtomSource(AtomMeta):
@@ -491,6 +517,7 @@ class AtomEntry(AtomMeta):
         "source": AtomSource.from_xml,
         "summary": AtomText.from_xml,
     }
+    content_type = "application/atom+xml;type=entry"
 
     def __init__(self, content=None, published=None, source=None,
                  summary=None, **kwargs):
@@ -549,8 +576,9 @@ class AtomFeed(AtomSource):
     inner_factory = {
         "entry": AtomEntry.from_xml
     }
+    content_type = "application/atom+xml"
     
-    def __init__(self, entries, **kwargs):
+    def __init__(self, entries=(), **kwargs):
         super(AtomFeed, self).__init__(**kwargs)
         self.entries = list(entries)
 
@@ -563,15 +591,13 @@ class AtomFeed(AtomSource):
         return super(AtomEntry, cls).from_xml(element, **kwargs)
 
     def create_xml(self, parent, tag=QName(atom_ns, "feed")):
-        super(AtomFeed, self).create_xml(parent, tag)
+        return super(AtomFeed, self).create_xml(parent, tag)
 
     def create_root_xml(self, tag=QName(atom_ns, "feed"),
                         element_class=None):
-        super(AtomFeed, self).create_root_xml(tag, element_class)
+        return super(AtomFeed, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
-        if not self.authors:
-            raise IncompleteObjectError, "at least one author required"
         if self.id is None:
             raise IncompleteObjectError, "id is required"
         if self.title is None:

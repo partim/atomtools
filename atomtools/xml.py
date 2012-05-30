@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 from xml.etree.ElementTree import Element, register_namespace, SubElement
+from xml.etree.ElementTree import parse as xml_parse
 
 def define_namespace(prefix, url):
     register_namespace(prefix, url)
@@ -52,6 +53,12 @@ class XMLObject(object):
         """
         return cls(**kwargs)
 
+    @classmethod
+    def parse_from_xml(cls, source, parser=None):
+        """Create an instance from an XML file object."""
+        element = xml_parse(source, parser)
+        return cls.from_xml(element.getroot())
+
     def validate(self, secure=True):
         """Validate whether the object would result in proper XML.
 
@@ -90,7 +97,7 @@ class XMLObject(object):
         """
         for type in cls.__mro__:
             try:
-                factory = type.__dir__["inner_factory"][name]
+                factory = type.__dict__["inner_factory"][name]
             except KeyError: 
                 continue
             return factory(sub)
