@@ -62,19 +62,17 @@ class XMLObject(object):
     def validate(self, secure=True):
         """Validate whether the object would result in proper XML.
 
-        If all is well, the method simply return ``None``. Otherwise it
-        should raise a :meth:`ValidationError` exception. This exception
-        contains a list of all the errors found as a pair of the XPath
+        The function returns a :class:`ValidationResult` object. Truth
+        check this object to see if all is well. Otherwise you'll find
+        a list of all the errors found as a pair of the XPath
         to the broken elements and a description. 
 
         The method should always check if the XML would be valid. If the
         attribute *secure* is ``True`` (the default), it should also
         check whether the result should be considered safe, whatever that
         means.
-
-        You can use 
         """
-        return None
+        return ValidationResult()
 
     @classmethod
     def inner_from_xml(cls, name, sub):
@@ -146,4 +144,21 @@ class XMLObject(object):
         """
         pass
 
+
+class ValidationResult(list):
+    """Result of a validation run.
+    
+    This is essentially a list of pairs, each representing an error: The
+    first item is the XPath to the faulty element, the second a textual
+    description of the error.
+    """
+    def add(self, path, text):
+        self.append((path, text))
+
+    def update(self, result, prefix):
+        """Update from *result*, adding *prefix* to the XPath."""
+        self.extend(("%s%s" % (prefix, path), text) for path, text in result)
+
+    def __unicode__(self):
+        return "".join("%s: %s\n" % item for item in self)
 

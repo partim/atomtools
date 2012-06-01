@@ -13,5 +13,3 @@ class ValidationError(RuntimeError):
     """The object does not validate.
 
     """
-
-

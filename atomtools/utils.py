@@ -6,7 +6,8 @@ from xml.etree.ElementTree import tostring as to_xml_string
 
 def create_text_xml(text, parent, tag):
     element = SubElement(parent, tag)
-    element.text = unicode(text)
+    if text:
+        element.text = unicode(text)
     return element
 
 def flatten_xml_content(element):

@@ -7,7 +7,7 @@ import base64
 from datetime import datetime
 from xml.etree.ElementTree import QName
 
-from atomtools.exceptions import IncompleteObjectError
+from atomtools.exceptions import ValidationError
 from atomtools.utils import (create_text_xml, flatten_xml_content,
                              from_text_xml, wrap_xml_tree)
 from atomtools.xhtml import xhtml_ns
@@ -80,18 +80,18 @@ class AtomText(AtomCommon):
                                              **kwargs)
 
     def prepare_xml(self, element):
-        if self.text is None:
-            raise IncompleteObjectError, "text must not be None"
         super(AtomText, self).prepare_xml(element)
         if self.type is not None:
             element.attrib["type"] = self.type
         if self.type is not None and self.type.lower() == "xhtml":
-            if hasattr(self.text, "create_xml"):
-                self.create_xml(element)
+            if self.text is None:
+                element.append(QName(xhtml_ns, "div"))
+            elif hasattr(self.text, "create_xml"):
+                self.text.create_xml(element)
             else:
                 element.append(self.text)
-        else:
-            element.text = self.text
+        elif self.text:
+            element.text = unicode(self.text)
 
 
 class AtomPerson(AtomCommon):
@@ -122,8 +122,6 @@ class AtomPerson(AtomCommon):
 
     def prepare_xml(self, element):
         super(AtomPerson, self).prepare_xml(element)
-        if self.name is None:
-            raise IncompleteObjectError, "name must not be None"
         create_text_xml(self.name, element, QName(atom_ns, "name"))
         if self.uri:
             create_text_xml(self.uri, element, QName(atom_ns, "uri"))
@@ -278,10 +276,8 @@ class AtomCategory(AtomCommon):
         return super(AtomCategory, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
-        if term is None:
-            raise IncompleteObjectError, "term is required"
         super(AtomCategory, self).prepare_xml(element)
-        element.attrib["term"] = self.term
+        element.attrib["term"] = self.term or ""
         if self.scheme:
             element.attrib["scheme"] = self.scheme
         if self.label:
@@ -355,10 +351,8 @@ class AtomLink(AtomCommon):
         return super(AtomLink, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
-        if self.href is None:
-            raise IncompleteObjectError, "href is required"
         super(AtomLink, self).prepare_xml(element)
-        element.attrib["href"] = self.href
+        element.attrib["href"] = self.href or ""
         if self.rel is not None:
             element.attrib["rel"] = self.rel
         if self.type is not None:
@@ -552,12 +546,6 @@ class AtomEntry(AtomMeta):
         return super(AtomEntry, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
-        if self.id is None:
-            raise IncompleteObjectError, "id is required"
-        if self.title is None:
-            raise IncompleteObjectError, "title is required"
-        if self.updated is None:
-            raise IncompleteObjectError, "updated is required"
         super(AtomEntry, self).prepare_xml(element)
         if self.content:
             self.content.create_xml(element, QName(atom_ns, "content"))
@@ -602,12 +590,6 @@ class AtomFeed(AtomSource):
         return super(AtomFeed, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
-        if self.id is None:
-            raise IncompleteObjectError, "id is required"
-        if self.title is None:
-            raise IncompleteObjectError, "title is required"
-        if not self.updated:
-            raise IncompleteObjectError, "updated is required"
         super(AtomFeed, self).prepare_xml(element)
         for entry in self.entries:
             entry.create_xml(element, QName(atom_ns, "entry"))
