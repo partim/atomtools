@@ -593,3 +593,4 @@ class AtomFeed(AtomSource):
         super(AtomFeed, self).prepare_xml(element)
         for entry in self.entries:
             entry.create_xml(element, QName(atom_ns, "entry"))
+
