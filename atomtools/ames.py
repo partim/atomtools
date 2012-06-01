@@ -25,11 +25,11 @@ class AmesPost(AppEntry):
     content_type = "application/x-ames+xml;type=post"
 
     def create_xml(self, parent, tag=QName(ames_ns, "post")):
-        return super(AtomEntry, self).create_xml(parent, tag)
+        return super(AmesPost, self).create_xml(parent, tag)
 
     def create_root_xml(self, tag=QName(ames_ns, "post"),
                         element_class=None):
-        return super(AtomEntry, self).create_root_xml(tag, element_class)
+        return super(AmesPost, self).create_root_xml(tag, element_class)
 
 
 class AmesFeed(AppFeed):
@@ -50,7 +50,7 @@ class AmesFeed(AppFeed):
         for sub in element:
             if sub.tag == QName(ames_ns, "post"):
                 posts.append(cls.inner_from_xml("post", sub))
-        return super(AmesFeed, self).create_xml(element, **kwargs)
+        return super(AmesFeed, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
         super(AmesFeed, self).prepare_xml(element)
