@@ -243,11 +243,10 @@ class AppFeed(AtomFeed):
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        collection = element.find(QName(app_ns, "collection"))
-        if collection:
-            collection = cls.inner_from_xml("collection", collection)
-        return super(AppFeed, cls).from_xml(element, collection=collection,
-                                            **kwargs)
+        for sub in element:
+            if sub.tag == QName(app_ns, "collection"):
+                kwargs["collection"] = cls.inner_from_xml("collection", sub)
+        return super(AppFeed, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
         super(AppFeed, self).prepare_xml(element)

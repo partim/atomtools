@@ -4,6 +4,7 @@ The document you are looking for is RFC 4287.
 """
 from __future__ import absolute_import
 import base64
+from datetime import datetime
 from xml.etree.ElementTree import QName
 
 from atomtools.exceptions import IncompleteObjectError
@@ -135,7 +136,10 @@ class AtomDate(AtomCommon):
 
     A date construct contains a date and time in a specific format.
     """
-    date_format = '%Y-%m-%dT%H:%M:%S%z'
+    # XXX This is missing proper time offset support. We'll add that soon.
+    #     (Note to self: RFC 3339.)
+    #
+    date_format = '%Y-%m-%dT%H:%M:%SZ'
 
     def __init__(self, datetime=None, **kwargs):
         super(AtomDate, self).__init__(**kwargs)
@@ -143,7 +147,7 @@ class AtomDate(AtomCommon):
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        dt = datetime.strptime(element.text, self.date_format)
+        dt = datetime.strptime(element.text, cls.date_format)
         return super(AtomDate, cls).from_xml(element, datetime=dt, **kwargs)
 
     def prepare_xml(self, element):
@@ -339,7 +343,7 @@ class AtomLink(AtomCommon):
     @classmethod
     def from_xml(cls, element, **kwargs):
         return super(AtomLink, cls).from_xml(element,
-                href=elememt.attrib.get("href"),
+                href=element.attrib.get("href"),
                 rel=element.attrib.get("rel"),
                 type=element.attrib.get("type"),
                 hreflang=element.attrib.get("hreflang"),
@@ -414,7 +418,7 @@ class AtomMeta(AtomCommon):
                 kwargs["rights"] = cls.inner_from_xml("rights", sub)
             elif sub.tag == QName(atom_ns, "title"):
                 kwargs["title"] = cls.inner_from_xml("title", sub)
-            elif sub.tag == QName(atom_ns, "udpated"):
+            elif sub.tag == QName(atom_ns, "updated"):
                 kwargs["updated"] = cls.inner_from_xml("updated", sub)
         return super(AtomMeta, cls).from_xml(element, **kwargs)
 
@@ -583,12 +587,12 @@ class AtomFeed(AtomSource):
         self.entries = list(entries)
 
     @classmethod
-    def from_xml(self, element, **kwargs):
-        kwargs.setdefault("entries", [])
+    def from_xml(cls, element, **kwargs):
+        entries = kwargs.setdefault("entries", [])
         for sub in element:
             if sub.tag == QName(atom_ns, "entry"):
-                self.entries.append(cls.inner_from_xml("entry", sub))
-        return super(AtomEntry, cls).from_xml(element, **kwargs)
+                entries.append(cls.inner_from_xml("entry", sub))
+        return super(AtomFeed, cls).from_xml(element, **kwargs)
 
     def create_xml(self, parent, tag=QName(atom_ns, "feed")):
         return super(AtomFeed, self).create_xml(parent, tag)
