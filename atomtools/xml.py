@@ -4,6 +4,10 @@ from __future__ import absolute_import
 from xml.etree.ElementTree import Element, register_namespace, SubElement
 from xml.etree.ElementTree import parse as xml_parse
 
+# Imports carried over. You can encouraged to import these names from here
+#
+from xml.etree.ElementTree import QName
+
 def define_namespace(prefix, url):
     register_namespace(prefix, url)
     return url
