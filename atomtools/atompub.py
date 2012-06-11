@@ -72,7 +72,7 @@ class AppAccept(AtomCommon):
 
     """
     def __init__(self, media_range=None, **kwargs):
-        super(AtomAccept, self).__init__(**kwargs)
+        super(AppAccept, self).__init__(**kwargs)
         self.media_range = media_range
 
     @classmethod

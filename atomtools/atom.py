@@ -435,8 +435,15 @@ class AtomMeta(AtomCommon):
         if self.updated:
             self.updated.create_xml(element, QName(atom_ns, "updated"))
 
+    def get_link(self, rel):
+        """Return the href of the first link with *rel* or None."""
+        for link in self.links:
+            if link.rel == rel:
+                return link.href
+        return None
+
     def get_links(self, rel):
-        """Returns a list of the hrefs of all links with *rel*."""
+        """Return a list of the hrefs of all links with *rel*."""
         return [link.href for link in self.links if link.rel == rel]
 
     def get_first_link(self, rel):
@@ -555,6 +562,17 @@ class AtomEntry(AtomMeta):
             self.source.create_xml(element, QName(atom_ns, "source"))
         if self.summary:
             self.summary.create_xml(element, QName(atom_ns, "summary"))
+
+    # A bunch of helpers to make life easier
+    #
+    def get_authors(self):
+        """Return all authors."""
+        res = []
+        if self.authors:
+            res.extend(self.authors)
+        if self.source and self.source.authors:
+            res.extend(self.source.authors)
+        return res
 
 
 class AtomFeed(AtomSource):
