@@ -1,0 +1,115 @@
+
+
+
+		      Atom Extensions for Messaging (AMes)
+
+Abstract
+
+   This document defines a number of extension to the Atom Syndication
+   Format and the Atom Publishing Protocol to make them available for short
+   messages.
+
+
+1.  Introduction
+
+   The Atom Syndication Format and its editing protocol, the Atom Publishing
+   Protocol, have originally been designed with larger articles in mind.
+   However, their principle concepts make them very suitable for the kind
+   of short message exchanges that are common in the social Internet of
+   today.  This documents a small set of extensions that will allow using
+   Atom and Atompub for such exchanges.
+
+   Specifically, these extensions are:
+
+   o  Posts: A variant of the atom:entry with relaxed requirements.
+
+2.  Notational Conventions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+   
+3.  Atom Extensions
+
+   This document defines a new elements for use in Atom documents. These
+   are to be considered foreign markup as defined in section 6 of
+   [RFC4287]. 
+
+   The XML namespace name [REC-xml-names] for all these elements is:
+
+      http://www.alipedis.com/2012/ames
+
+   This specification uses the prefix "ames:" for the namespace name. The
+   prefix "atom:" is used for "http://www.w3.org/2005/Atom", the namespace
+   name of the Atom Syndication Format [RFC4287]. The prefix "app:" is
+   used for "http://www.w3.org/2007/app", the namespace name for the Atom
+   Publishing Protocol [RFC5023].
+
+   Like Atom itself, this document does not define a DTD.
+
+3.1.  AMes Documents
+
+   This specification describes one XML document, the AMes post document.
+   It represents exactly one Ames post, outside of the context of an Atom
+   feed. Its root is the ames:post element.
+
+      namespace ames = "http://www.alipedis.com/2012/ames"
+      start = amesEntry
+
+   The AMes Post Document uses the media type "application/x-ames+xml".
+
+3.2.  Element Definitions
+
+3.2.1.  The "ames:post" Element
+
+   The "ames:post" element represents an individual short message. It
+   essentially is a light-weight sibling of the "atom:entry" element in
+   that it contains a subset of the same elements as an "atom:entry".
+
+   The "ames:post" element can appear as a child of an "atom:feed" element
+   instead of the normal "atom:entry" elements or it can appear as the
+   document element of a stand-alone AMes Post Document
+
+   amesPost =
+      element ames:post {
+         atomCommonAttributes,
+         (atomAuthor*
+          & atomCategory*
+          & amesContent
+          & atomId
+          & atomLink*
+          & atomPublished?
+          & atomRights?
+          & atomUpdated
+          & extensionElement*)
+      }
+
+   This specification assigns no significance to the order of appearance
+   of the child elements of atom:entry.
+
+   The following child elements are defined by this specification (note
+   that it requires the presence of some of these elements):
+
+   o  ames:post elements MUST contain one or more atom:author elements,
+      unless the ames:post element contains an atom:source element that
+      contains an atom:author element or, in an Atom Feed Document, the
+      atom:feed element contains an atom:author element itself.
+   o  ames:post elements MAY contain any number of atom:category elements.
+   o  ames:post elements MUST contain exactly one ames:content element.
+   o  ames:post elements MUST contain exactly one atom:id element.
+   o  ames:post elements MUST NOT contain more than one atom:link
+      element with a rel attribute value of "alternate" that has the
+      same combination of type and hreflang attribute values.
+   o  ames:post elements MAY contain additional atom:link elements beyond
+      those described above.
+   o  ames:post element MUST NOT contain more than one atom:rights element.
+   o  ames:post elements MUST contain exactly one atom:updated element.
+
+3.2.2.  The "ames:content" Element
+
+   The "ames:content" element contains the content of the post. Unlike
+   atom:content, it is limited to directly contain textual content and thus
+   is a Text construct as defined in Section 3.1. of [RFC4287].
+
+   amesContent = element ames:content { atomTextConstruct }
+
