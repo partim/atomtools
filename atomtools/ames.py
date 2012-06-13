@@ -102,15 +102,6 @@ class AmesPost(AtomCommon):
 
     # A bunch of helpers to make life easier
     #
-    def get_authors(self):
-        """Return all authors."""
-        res = []
-        if self.authors:
-            res.extend(self.authors)
-        if self.source and self.source.authors:
-            res.extend(self.source.authors)
-        return res
-
     def get_link(self, rel):
         """Return the href of the first link with *rel* or None."""
         for link in self.links:
