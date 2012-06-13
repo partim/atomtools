@@ -4,12 +4,14 @@ The document you are looking for is RFC 4287.
 """
 from __future__ import absolute_import
 import base64
-from datetime import datetime
+from datetime import datetime, tzinfo
+import re
 from xml.etree.ElementTree import QName
 
 from atomtools.exceptions import ValidationError
 from atomtools.utils import (create_text_xml, flatten_xml_content,
                              from_text_xml, wrap_xml_tree)
+from atomtools.tzinfo import TzInfoFixedOffset, TzInfoUTC
 from atomtools.xhtml import xhtml_ns
 from atomtools.xml import define_namespace, XMLObject, xml_ns
 
@@ -137,7 +139,9 @@ class AtomDate(AtomCommon):
     # XXX This is missing proper time offset support. We'll add that soon.
     #     (Note to self: RFC 3339.)
     #
-    date_format = '%Y-%m-%dT%H:%M:%SZ'
+    date_re = re.compile(r"(\d\d\d\d)-(\d\d)-(\d\d)T"
+                         r"(\d\d):(\d\d):(\d\d)(\.\d+)?"
+                         r"(Z|[-+](\d\d):(\d\d))")
 
     def __init__(self, datetime=None, **kwargs):
         super(AtomDate, self).__init__(**kwargs)
@@ -145,14 +149,41 @@ class AtomDate(AtomCommon):
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        dt = datetime.strptime(element.text, cls.date_format)
+        m = cls.date_re.match(element.text)
+        if m is not None:
+            (year, mon, day, hour, minute,
+             sec, frac, off, offhour, offmin) = m.groups()
+            if offhour is None:
+                tz = TzInfoUTC()
+            else:
+                tz = TzInfoFixedOffset(int(offhour) * 60 + int(offmin))
+            if frac:
+                msec = int(float(frac) * 1000000)
+            else:
+                msec = 0
+            dt = datetime(int(year), int(mon), int(day), int(hour),
+                          int(minute), int(sec), msec, tz)
+        else:
+            dt = None
         return super(AtomDate, cls).from_xml(element, datetime=dt, **kwargs)
 
     def prepare_xml(self, element):
         if self.datetime is None:
             raise IncompleteObjectError, "datetime must not be None"
         super(AtomDate, self).prepare_xml(element)
-        element.text = self.datetime.strftime(self.date_format)
+        dt = self.datetime
+        if dt.microsecond:
+            frac = (".%06i" % dt.microsecond).rstrip("0")
+        else:
+            frac = ""
+        if dt.tzinfo:
+            tz = dt.tzinfo.tzname(dt)
+        else:
+            tz = "Z"
+        element.text = ("%04d-%02d-%02dT%02d:%02d:%02d%s%s" 
+                          % (dt.year, dt.month, dt.day, dt.hour,
+                             dt.minute, dt.second, frac, tz))
+        print element.text
 
 
 class AtomContent(AtomCommon):
