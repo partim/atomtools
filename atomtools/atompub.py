@@ -65,6 +65,8 @@ class AppAccept(AtomCommon):
     """8.3.4  The "app:accept" Element
 
     """
+    standard_tag = QName(app_ns, "accept")
+
     def __init__(self, media_range=None, **kwargs):
         super(AppAccept, self).__init__(**kwargs)
         self.media_range = media_range
@@ -89,6 +91,7 @@ class AppCollection(AtomCommon):
         "accept": AppAccept.from_xml,
         "categories": AppCategories.from_xml,
     }
+    standard_tag = QName(app_ns, "collection")
 
     def __init__(self, href=None, title=None, accept=(), categories=(),
                  **kwargs):
@@ -133,6 +136,7 @@ class AppWorkspace(AtomCommon):
         "title": AtomText.from_xml,
         "collection": AppCollection.from_xml
     }
+    standard_tag = QName(app_ns, "workspace")
 
     def __init__(self, title=None, collections=(), **kwargs):
         super(AppWorkspace, self).__init__(**kwargs)
@@ -165,6 +169,7 @@ class AppService(AtomCommon):
     inner_factory = {
         "workspace": AppWorkspace.from_xml,
     }
+    standard_tag = QName(app_ns, "service")
     content_type = "application/atomsvc+xml"
 
     def __init__(self, workspaces=(), **kwargs):
