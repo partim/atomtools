@@ -105,31 +105,37 @@ class XMLObject(object):
             return factory(sub)
         raise KeyError, name
 
-    def create_xml(self, parent, tag):
+    def create_xml(self, parent, tag=None):
         """Create an XML element for this object.
 
         Creates an new XML element tree element instance as the last
         child of *parent* and *tag*. It then calls :meth:`prepare_xml`
         to set up the element. The argument *parent* mus not be ``None``.
 
-        Returns the newly created elment.
+        If *tag* is ``None`` (or missing), tries to get the flag from
+        ``self.standard_tag``.
 
-        The tag name is included in the arguments to allow using a class
-        for different actual XML element types. If your class will always
-        create an element with the same tag, you can overide the method
-        dropping the tag argument.
+        Returns the newly created elment.
         """
+        try:
+            tag = tag or self.standard_tag
+        except AttributeError:
+            raise ValueError, 'need "tag" or self.standard_tag'
         element = SubElement(parent, tag)
         self.prepare_xml(element)
         return element
 
-    def create_root_xml(self, tag, element_class=None):
+    def create_root_xml(self, tag=None, element_class=None):
         """Create a root XML element for this object.
 
         Same as :meth:`create_xml` except that it creates an element
         without a parent as an instance of *element_class*.
         """
         element_class = element_class or Element
+        try:
+            tag = tag or self.standard_tag
+        except AttributeError:
+            raise ValueError, 'need "tag" or self.standard_tag'
         element = element_class(tag)
         self.prepare_xml(element)
         return element
