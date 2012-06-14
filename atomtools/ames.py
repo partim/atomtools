@@ -8,14 +8,11 @@ the other elements.
 You can find the documentation in doc/ames in the source distribution.
 """
 
-from __future__ import absolute_import
-from xml.etree.ElementTree import QName
-
 from atomtools.atom import (AtomCategory, AtomCommon, AtomDate, AtomLink,
                             AtomPerson, AtomText, atom_ns)
 from atomtools.atompub import AppFeed
 from atomtools.utils import create_text_xml, from_text_xml
-from atomtools.xml import define_namespace
+from atomtools.xml import QName, define_namespace
 
 # Namespace
 #
@@ -34,6 +31,7 @@ class AmesPost(AtomCommon):
         "rights": AtomText.from_xml,
         "updated": AtomDate.from_xml,
     }
+    standard_tag = QName(ames_ns, "post")
     content_type = "application/x-ames+xml"
 
     def __init__(self, authors=(), categories=(), content=None, id=None,
@@ -73,13 +71,6 @@ class AmesPost(AtomCommon):
             elif sub.tag == QName(atom_ns, "updated"):
                 kwargs["updated"] = cls.inner_from_xml("updated", sub)
         return super(AmesPost, cls).from_xml(element, **kwargs)
-
-    def create_xml(self, parent, tag=QName(ames_ns, "post")):
-        return super(AmesPost, self).create_xml(parent, tag)
-
-    def create_root_xml(self, tag=QName(ames_ns, "post"),
-                        element_class=None):
-        return super(AmesPost, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
         super(AmesPost, self).prepare_xml(element)

@@ -20,6 +20,7 @@ class AppCategories(AtomCommon):
     inner_factory = {
         "category": AtomCategory.from_xml,
     }
+    standard_tag = QName(app_ns, "categories")
     content_type = "application/atomcat+xml"
 
     def __init__(self, fixed=False, scheme=None, href=None, categories=(),
@@ -46,13 +47,6 @@ class AppCategories(AtomCommon):
                     kwargs["category"].append(cls.inner_from_xml("category",
                                                                  sub))
         return super(AppCategories, cls).from_xml(element, **kwargs)
-
-    def create_xml(self, parent, tag=QName(app_ns, "categories")):
-        return super(AppCategories, self).create_xml(parent, tag)
-
-    def create_root_xml(self, tag=QName(app_ns, "categories"),
-                        element_class=None):
-        return super(AppCategories, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
         super(AppCategories, self).prepare_xml(element)

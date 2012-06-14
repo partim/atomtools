@@ -207,6 +207,8 @@ class AtomContent(AtomCommon):
     arbitrary media types. If you want to limit types in your derived
     class, overide :meth:`allow_type`.
     """
+    standard_tag = QName(atom_ns, "content")
+
     def __init__(self, type=None, src=None, content=None, **kwargs):
         super(AtomContent, self).__init__(**kwargs)
         self.type = type
@@ -240,9 +242,6 @@ class AtomContent(AtomCommon):
         return super(AtomContent, cls).from_xml(element, type=type,
                                                 src=src, content=content,
                                                 **kwargs)
-
-    def create_xml(self, parent, tag=QName(atom_ns, "content")):
-        return super(AtomContent, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
         super(AtomContent, self).prepare_xml(element)
@@ -289,6 +288,8 @@ class AtomCategory(AtomCommon):
     part of a specific scheme, that is given as a IRI in *scheme*. Finally,
     there may be a human-readable label in the attribute *label*.
     """
+    standard_tag = QName(atom_ns, "category")
+
     def __init__(self, term=None, scheme=None, label=None, **kwargs):
         super(AtomCategory, self).__init__(**kwargs)
         self.term = term
@@ -302,9 +303,6 @@ class AtomCategory(AtomCommon):
                 scheme=element.attrib.get("scheme"),
                 label=element.attrib.get("label"),
                 **kwargs)
-
-    def create_xml(self, parent, tag=QName(atom_ns, "category")):
-        return super(AtomCategory, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
         super(AtomCategory, self).prepare_xml(element)
@@ -321,6 +319,8 @@ class AtomGenerator(AtomCommon):
     Identifies the user agent that created the XML. There is an *uri* and
     a *version* attribute besides the actual name in *text*.
     """
+    standard_tag = QName(atom_ns, "generator")
+
     def __init__(self, text=None, uri=None, version=None, **kwargs):
         super(AtomGenerator, self).__init__(**kwargs)
         self.text = text
@@ -334,9 +334,6 @@ class AtomGenerator(AtomCommon):
                 uri=element.attrib.get("uri"),
                 version=element.attrib.get("version"),
                 **kwargs)
-
-    def create_xml(self, parent, tag=QName(atom_ns, "generator")):
-        return super(AtomGenerator, self).create_xml(parent, tag)
 
     def prepare_xml(self, element):
         super(AtomGenerator, self).prepare_xml(element)
@@ -357,6 +354,8 @@ class AtomLink(AtomCommon):
     *title* the document's title, and optional *length* the length in
     octets.
     """
+    standard_tag = QName(atom_ns, "link")
+
     def __init__(self, href=None, rel=None, type=None, hreflang=None,
                  title=None, length=None, **kwargs):
         super(AtomLink, self).__init__(**kwargs)
@@ -378,9 +377,6 @@ class AtomLink(AtomCommon):
                 length=element.attrib.get("length"),
                 **kwargs)
 
-    def create_xml(self, parent, tag=QName(atom_ns, "link")):
-        return super(AtomLink, self).create_xml(parent, tag)
-
     def prepare_xml(self, element):
         super(AtomLink, self).prepare_xml(element)
         element.attrib["href"] = self.href or ""
@@ -394,6 +390,7 @@ class AtomLink(AtomCommon):
             element.attrib["title"] = self.title
         if self.length is not None:
             element.attrib["length"] = self.length
+
 
 class AtomMeta(AtomCommon):
     """Meta data common to atom:source, atom:entry, and atom:feed."""
@@ -501,6 +498,7 @@ class AtomSource(AtomMeta):
 
     There is loads of attributes. See the source.
     """
+    standard_tag = QName(atom_ns, "source")
     inner_factory = {
         "generator": AtomGenerator.from_xml,
         "subtitle": AtomText.from_xml,
@@ -527,9 +525,6 @@ class AtomSource(AtomMeta):
                 kwargs["subtitle"] = cls.inner_from_xml("subtitle", sub)
         return super(AtomSource, cls).from_xml(element, **kwargs)
 
-    def create_xml(self, parent, tag=QName(atom_ns, "source")):
-            return super(AtomSource, self).create_xml(parent, tag)
-
     def prepare_xml(self, element):
         super(AtomSource, self).prepare_xml(element)
         if self.generator:
@@ -553,6 +548,7 @@ class AtomEntry(AtomMeta):
         "source": AtomSource.from_xml,
         "summary": AtomText.from_xml,
     }
+    standard_tag = QName(atom_ns, "entry")
     content_type = "application/atom+xml;type=entry"
 
     def __init__(self, content=None, published=None, source=None,
@@ -575,13 +571,6 @@ class AtomEntry(AtomMeta):
             elif sub.tag == QName(atom_ns, "summary"):
                 kwargs["summary"] = cls.inner_from_xml("summary", sub)
         return super(AtomEntry, cls).from_xml(element, **kwargs)
-
-    def create_xml(self, parent, tag=QName(atom_ns, "entry")):
-        return super(AtomEntry, self).create_xml(parent, tag)
-
-    def create_root_xml(self, tag=QName(atom_ns, "entry"),
-                        element_class=None):
-        return super(AtomEntry, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
         super(AtomEntry, self).prepare_xml(element)
@@ -617,6 +606,7 @@ class AtomFeed(AtomSource):
     inner_factory = {
         "entry": AtomEntry.from_xml
     }
+    standard_tag = QName(atom_ns, "feed")
     content_type = "application/atom+xml"
     
     def __init__(self, entries=(), **kwargs):
@@ -630,13 +620,6 @@ class AtomFeed(AtomSource):
             if sub.tag == QName(atom_ns, "entry"):
                 entries.append(cls.inner_from_xml("entry", sub))
         return super(AtomFeed, cls).from_xml(element, **kwargs)
-
-    def create_xml(self, parent, tag=QName(atom_ns, "feed")):
-        return super(AtomFeed, self).create_xml(parent, tag)
-
-    def create_root_xml(self, tag=QName(atom_ns, "feed"),
-                        element_class=None):
-        return super(AtomFeed, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
         super(AtomFeed, self).prepare_xml(element)
