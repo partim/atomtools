@@ -128,7 +128,7 @@ class AconfService(AppService):
 
     def prepare_xml(self, element):
         super(AconfService, self).prepare_xml(element)
-        for link is self.links:
+        for link in self.links:
             link.create_xml(element)
 
 

@@ -98,8 +98,8 @@ class AppCollection(AtomCommon):
         super(AppCollection, self).__init__(**kwargs)
         self.href = href
         self.title = title
-        self.accept = accept
-        self.categories = categories
+        self.accept = list(accept)
+        self.categories = list(categories)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
@@ -192,8 +192,6 @@ class AppService(AtomCommon):
         return super(AppService, self).create_root_xml(tag, element_class)
 
     def prepare_xml(self, element):
-        if not self.workspaces:
-            raise IncompleteObjectError, "workspaces is required"
         super(AppService, self).prepare_xml(element)
         for item in self.workspaces:
             item.create_xml(element, QName(app_ns, "workspace"))

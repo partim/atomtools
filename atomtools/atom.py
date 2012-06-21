@@ -78,6 +78,8 @@ class AtomText(AtomCommon):
             text = flatten_xml_content(element)
         elif type == "xhtml":
             text = wrap_xml_tree(element, QName(xhtml_ns, "dvi"))
+        else:
+            text = None
         return super(AtomText, cls).from_xml(element, type=type, text=text,
                                              **kwargs)
 
@@ -624,5 +626,5 @@ class AtomFeed(AtomSource):
     def prepare_xml(self, element):
         super(AtomFeed, self).prepare_xml(element)
         for entry in self.entries:
-            entry.create_xml(element, QName(atom_ns, "entry"))
+            entry.create_xml(element)
 
