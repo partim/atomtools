@@ -8,8 +8,8 @@ the other elements.
 You can find the documentation in doc/ames in the source distribution.
 """
 
-from atomtools.atom import (AtomCategory, AtomCommon, AtomDate, AtomLink,
-                            AtomPerson, AtomText, atom_ns)
+from atomtools.atom import (AtomCategory, AtomCommon, AtomDate, AtomEntry,
+                            AtomLink, AtomPerson, AtomText, atom_ns)
 from atomtools.atompub import AppFeed
 from atomtools.utils import create_text_xml, from_text_xml
 from atomtools.xml import QName, define_namespace
@@ -23,6 +23,8 @@ class AmesPost(AtomCommon):
     
     """
     inner_factory = {
+        "entry": AtomEntry.from_xml,
+
         "author": AtomPerson.from_xml,
         "category": AtomCategory.from_xml,
         "content": AtomText.from_xml,
@@ -134,14 +136,9 @@ class AmesFeed(AppFeed):
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        posts = kwargs.setdefault("posts", [])
+        entries = kwargs.setdefault("entries", [])
         for sub in element:
             if sub.tag == QName(ames_ns, "post"):
-                posts.append(cls.inner_from_xml("post", sub))
+                entries.append(cls.inner_from_xml("post", sub))
         return super(AmesFeed, cls).from_xml(element, **kwargs)
-
-    def prepare_xml(self, element):
-        super(AmesFeed, self).prepare_xml(element)
-        for post in self.posts:
-            post.create_xml(element, QName(ames_ns, "post"))
 
