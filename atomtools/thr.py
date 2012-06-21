@@ -69,26 +69,35 @@ class ThrLink(AtomLink):
             element.attrib[QName(thr_ns, "updated")] = self.updated
 
 
-class ThrTotalMixin(XMLObject):
+class ThrMixin(XMLObject):
     """5.  The 'total' Extension Element
 
     """
     inner_factor = {
-        "total": AtomText.from_xml
+        "total": AtomText.from_xml,
+        "link": ThrLink.from_xml,
+        "in-reply-to": ThrInReplyTo.from_xml
     }
 
-    def __init__(self, total=None, **kwargs):
-        super(ThrTotalMixin, self).__init__(**kwargs)
+    def __init__(self, total=None, in_reply_tos=(), **kwargs):
+        super(ThrMixin, self).__init__(**kwargs)
         self.total = total
+        self.in_reply_tos = list(in_reply_tos)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
+        kwargs.setdefault("in_reply_tos", [])
         for sub in element:
             if sub.tag == QName(thr_ns, "total"):
                 kwargs["total"] = cls.inner_from_xml("total", sub)
-        return super(ThrTotalMixin, cls).from_xml(element, **kwargs)
+            if sub.tag == QName(thr_ns, "in-reply-to"):
+                kwargs["in_reply_tos"].append(
+                        cls.inner_from_xml("in_reply_to", sub))
+        return super(ThrMixin, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
-        super(ThrTotalMixin, self).prepare_xml(element)
+        super(ThrMixin, self).prepare_xml(element)
         if self.total:
             self.total.create_xml(element, QName(thr_ns, "total"))
+        for item in self.in_reply_tos:
+            item.create_xml(element)
