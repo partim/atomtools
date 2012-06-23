@@ -131,4 +131,29 @@ class AconfService(AppService):
         for link in self.links:
             link.create_xml(element)
 
+    def get_link(self, rel):
+        """Return the href of the first link with *rel* or None."""
+        for link in self.links:
+            if link.rel == rel:
+                return link.href
+        return None
+
+    def get_links(self, rel):
+        """Return a list of the hrefs of all links with *rel*."""
+        return [link.href for link in self.links if link.rel == rel]
+
+    def get_first_link(self, rel):
+        """Get the href of the first link with *rel*."""
+        for link in self.links:
+            if link.rel == rel:
+                return link.href
+
+    def replace_link(self, rel, href, **kwargs):
+        """Replace all links with *rel* with a single new one."""
+        self.remove_links(rel)
+        self.links.append(AtomLink(href=href, rel=rel, **kwargs))
+
+    def remove_links(self, rel):
+        """Remove all linjks with *rel*."""
+        self.links = [link for link in self.links if link.rel != rel]
 
