@@ -111,7 +111,7 @@ class AconfService(AppService):
 
     """
     inner_factory = {
-        'link': AconfLink,
+        'link': AconfLink.from_xml,
     }
 
     def __init__(self, links=(), **kwargs):
