@@ -9,7 +9,7 @@ This is work in progress and will be extended as necessary. And probably
 changed completely.
 """
 
-from atomtools.atom import AtomCommon
+from atomtools.atom import AtomCategory, atom_ns
 from atomtools.atompub import AppService
 from atomtools.utils import create_text_xml
 from atomtools.xml import define_namespace, QName, XMLObject, xml_ns
@@ -54,20 +54,34 @@ class AsocPeer(XMLObject):
     """The "asoc:peer" Element.
 
     """
+    inner_factory = {
+        "category": AtomCategory.from_xml,
+        "link": AsocLink.from_xml,
+    }
     standard_tag = QName(asoc_ns, "peer")
 
-    def __init__(self, uri=None, name=None, **kwargs):
+    def __init__(self, uri=None, name=None, categories=(), links=(),
+                 **kwargs):
         super(AsocPeer, self).__init__(**kwargs)
         self.uri = uri
         self.name = name
+        self.categories = list(categories)
+        self.links = list(links)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
+        kwargs.setdefault("categories", [])
+        kwargs.setdefault("links", [])
         for sub in element:
             if sub.tag == QName(asoc_ns, "uri"):
                 kwargs["uri"] = sub.text
             elif sub.tag == QName(asoc_ns, "name"):
                 kwargs["name"] = sub.text
+            elif sub.tag == QName(atom_ns, "category"):
+                kwargs["categories"].append(cls.inner_from_xml("category",
+                                                               sub))
+            elif sub.tag == QName(asoc_ns, "link"):
+                kwargs["links"].append(cls.inner_from_xml("link", sub))
         return super(AsocPeer, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
@@ -76,37 +90,9 @@ class AsocPeer(XMLObject):
             create_text_xml(self.uri, element, QName(asoc_ns, "uri"))
         if self.name:
             create_text_xml(self.name, element, QName(asoc_ns, "name"))
-
-
-class AsocPeerGroup(XMLObject):
-    """The "asoc:peergroup" Element.
-
-    """
-    standard_tag = QName(asoc_ns, "peergroup")
-    inner_factory = {
-        "peer": AsocPeer.from_xml,
-    }
-
-    def __init__(self, name=None, peers=(), **kwargs):
-        super(AsocPeerGroup, self).__init__(**kwargs)
-        self.name = name
-        self.peers = list(peers)
-
-    @classmethod
-    def from_xml(cls, element, **kwargs):
-        kwargs.setdefault("peers", [])
-        for sub in element:
-            if sub.tag == QName(asoc_ns, "name"):
-                kwargs["name"] = sub.text
-            elif sub.tag == QName(asoc_ns, "peer"):
-                kwargs["peers"].append(cls.inner_from_xml("peer", sub))
-        return super(AsocPeerGroup, cls).from_xml(element, **kwargs)
-
-    def prepare_xml(self, element):
-        super(AsocPeerGroup, self).prepare_xml(element)
-        if self.name:
-            create_text_xml(self.name, element, QName(asoc_ns, "name"))
-        for item in sel.peers:
+        for item in self.categories:
+            item.create_xml(element)
+        for item in self.links:
             item.create_xml(element)
 
 
@@ -115,27 +101,26 @@ class AsocPeers(XMLObject):
 
     """
     inner_factory = {
-        "peergroup": AsocPeerGroup.from_xml,
+        "peer": AsocPeer.from_xml,
     }
     standard_tag = QName(asoc_ns, "peers")
     content_type = "application/asoc+xml;type=peers"
 
-    def __init__(self, peergroups=(), **kwargs):
+    def __init__(self, peers=(), **kwargs):
         super(AsocPeers, self).__init__(**kwargs)
-        self.peergroups = list(peergroups)
+        self.peers = list(peers)
 
     @classmethod
     def from_xml(cls, element, **kwargs):
-        kwargs.setdefault("peergroups", [])
+        kwargs.setdefault("peers", [])
         for sub in element:
-            if sub.tag == QName(asoc_ns, "peergroup"):
-                kwargs["peergroup"].append(cls.inner_from_xml("peergroup",
-                                                              sub))
+            if sub.tag == QName(asoc_ns, "peer"):
+                kwargs["peer"].append(cls.inner_from_xml("peer", sub))
         return super(AsocPeers, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
         super(AsocPeers, self).prepare_xml(element)
-        for item in self.peergroups:
+        for item in self.peers:
             item.create_xml(element)
 
 
