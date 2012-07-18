@@ -59,6 +59,7 @@ class AsocPeer(XMLObject):
         "link": AsocLink.from_xml,
     }
     standard_tag = QName(asoc_ns, "peer")
+    content_type = "application/asoc+xml;type=peer"
 
     def __init__(self, uri=None, name=None, categories=(), links=(),
                  **kwargs):
