@@ -1,7 +1,7 @@
 
 
 
-		      Atom Extensions for Messaging (AMes)
+		     Atom Extensions for Socializing (Asoc)
 
 Abstract
 
@@ -12,16 +12,12 @@ Abstract
 
 1.  Introduction
 
-   The Atom Syndication Format and its editing protocol, the Atom Publishing
-   Protocol, have originally been designed with larger articles in mind.
-   However, their principle concepts make them very suitable for the kind
-   of short message exchanges that are common in the social Internet of
-   today.  This documents a small set of extensions that will allow using
-   Atom and Atompub for such exchanges.
-
-   Specifically, these extensions are:
-
-   o  Posts: A variant of the atom:entry with relaxed requirements.
+   The Atom Syndication Format and its editing protocol, the Atom
+   Publishing Protocol, have originally been designed with larger
+   articles in mind.  However, their principle concepts make them very
+   suitable as a basis for the social networks.  This documents defines
+   a set of extensions that will allow using Atom and Atompub for this
+   purpose.
 
 2.  Notational Conventions
 
@@ -31,15 +27,15 @@ Abstract
    
 3.  Atom Extensions
 
-   This document defines a new elements for use in Atom documents. These
-   are to be considered foreign markup as defined in section 6 of
-   [RFC4287]. 
+   This document defines new elements for use in Atom and Atompub
+   documents. These are to be considered foreign markup as defined in
+   section 6 of [RFC4287]. 
 
    The XML namespace name [REC-xml-names] for all these elements is:
 
-      http://www.alipedis.com/2012/ames
+      http://www.alipedis.com/2012/asoc
 
-   This specification uses the prefix "ames:" for the namespace name. The
+   This specification uses the prefix "asoc:" for the namespace name. The
    prefix "atom:" is used for "http://www.w3.org/2005/Atom", the namespace
    name of the Atom Syndication Format [RFC4287]. The prefix "app:" is
    used for "http://www.w3.org/2007/app", the namespace name for the Atom
@@ -47,16 +43,17 @@ Abstract
 
    Like Atom itself, this document does not define a DTD.
 
-3.1.  AMes Documents
+3.1.  Asoc Documents
 
-   This specification describes one XML document, the AMes post document.
-   It represents exactly one Ames post, outside of the context of an Atom
-   feed. Its root is the ames:post element.
+   Besides reusing documents defined both by Atom and Atompub, this
+   specification describes several XML documents of its own for various
+   purposes.
 
-      namespace ames = "http://www.alipedis.com/2012/ames"
-      start = amesEntry
+      namespace asoc = "http://www.alipedis.com/2012/asoc"
+      start = asocPost | asocPeer | asocPeers | asocCertifcate
+            | asocCertificates
 
-   The AMes Post Document uses the media type "application/x-ames+xml".
+   All of these documents use the media type "application/asoc+xml".
 
 3.2.  Element Definitions
 
