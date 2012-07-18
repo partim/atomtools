@@ -59,14 +59,15 @@ class XMLObject(object):
         return cls(**kwargs)
 
     @classmethod
-    def parse_from_xml(cls, source, parser=None):
+    def parse_from_xml(cls, source, tag=None, parser=None):
         """Create an instance from an XML file object."""
+        tag = tag or cls.standard_tag
         tree = xml_parse(source, parser)
         element = tree.getroot()
-        if element.tag != cls.standard_tag:
+        if element.tag != tag:
             raise ParseError("expected '%s' element, got '%s'"
-                                % (cls.standard_tag, element.tag))
-        return cls.from_xml(element.getroot())
+                                % (tag, element.tag))
+        return cls.from_xml(element)
 
     def validate(self, secure=True):
         """Validate whether the object would result in proper XML.
