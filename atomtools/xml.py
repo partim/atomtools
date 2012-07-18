@@ -7,6 +7,7 @@ from xml.etree.ElementTree import parse as xml_parse
 # Imports carried over. You are encouraged to import these names from here
 #
 from xml.etree.ElementTree import QName
+from xml.etree.ElementTree import ParseError
 
 def define_namespace(prefix, url):
     register_namespace(prefix, url)
@@ -60,7 +61,11 @@ class XMLObject(object):
     @classmethod
     def parse_from_xml(cls, source, parser=None):
         """Create an instance from an XML file object."""
-        element = xml_parse(source, parser)
+        tree = xml_parse(source, parser)
+        element = tree.getroot()
+        if element.tag != cls.standard_tag:
+            raise ParseError("expected '%s' element, got '%s'"
+                                % (cls.standard_tag, element.tag))
         return cls.from_xml(element.getroot())
 
     def validate(self, secure=True):
