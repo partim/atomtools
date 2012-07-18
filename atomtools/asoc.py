@@ -162,9 +162,10 @@ class AsocPeer(XMLObject):
     standard_tag = QName(asoc_ns, "peer")
     content_type = "application/asoc+xml"
 
-    def __init__(self, uri=None, name=None, categories=(), links=(),
+    def __init__(self, id=None, uri=None, name=None, categories=(), links=(),
                  **kwargs):
         super(AsocPeer, self).__init__(**kwargs)
+        self.id = id
         self.uri = uri
         self.name = name
         self.categories = list(categories)
@@ -175,7 +176,9 @@ class AsocPeer(XMLObject):
         kwargs.setdefault("categories", [])
         kwargs.setdefault("links", [])
         for sub in element:
-            if sub.tag == QName(asoc_ns, "uri"):
+            if sub.tag == QName(atom_ns, "id"):
+                kwargs["id"] = from_text_xml(sub)
+            elif sub.tag == QName(asoc_ns, "uri"):
                 kwargs["uri"] = from_text_xml(sub)
             elif sub.tag == QName(asoc_ns, "name"):
                 kwargs["name"] = from_text_xml(sub)
@@ -188,6 +191,8 @@ class AsocPeer(XMLObject):
 
     def prepare_xml(self, element):
         super(AsocPeer, self).prepare_xml(element)
+        if self.id:
+            create_text_xml(self.id, element, QName(atom_ns, "id"))
         if self.uri:
             create_text_xml(self.uri, element, QName(asoc_ns, "uri"))
         if self.name:
