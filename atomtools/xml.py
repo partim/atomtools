@@ -1,7 +1,8 @@
 """Basic XML handling."""
 
 from __future__ import absolute_import
-from xml.etree.ElementTree import Element, register_namespace, SubElement
+from xml.etree.ElementTree import (Element, ElementTree, register_namespace,
+                                   SubElement)
 from xml.etree.ElementTree import parse as xml_parse
 
 # Imports carried over. You are encouraged to import these names from here
@@ -145,6 +146,18 @@ class XMLObject(object):
         element = element_class(tag)
         self.prepare_xml(element)
         return element
+
+    def encode(self):
+        """Encode the object into a byte string."""
+        class dummy:
+            pass
+        data = []
+        file = dummy()
+        file.write = data.append
+        ElementTree(self.create_root_xml()).write(file, "utf-8", True, "xml")
+        return "".join(data)
+        element = self.create_root_xml()
+        return tostring(element)
 
     def prepare_xml(self, element):
         """Prepare this object's XML element.
