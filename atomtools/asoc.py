@@ -222,7 +222,7 @@ class AsocPeers(XMLObject):
         kwargs.setdefault("peers", [])
         for sub in element:
             if sub.tag == QName(asoc_ns, "peer"):
-                kwargs["peer"].append(cls.inner_from_xml("peer", sub))
+                kwargs["peers"].append(cls.inner_from_xml("peer", sub))
         return super(AsocPeers, cls).from_xml(element, **kwargs)
 
     def prepare_xml(self, element):
